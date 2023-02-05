@@ -1,0 +1,94 @@
+#The data structure in this scenario is a dictionary, where the keys are the names of the items and values the descriptio.
+#the items are selected at random and retrieved from the JSON file: items.json
+#another dictionary is used to store the names and scores of player, used as existing player.
+
+
+import json  #this imports the json file dictionary with all the items used for our guessing game.
+import random # this extracts random elements from the json file: items
+
+ITEMS_FILE = "items.json"
+LEAGUE_TABLE_FILE = "league_table.json"
+
+
+# this def Loads the items from the JSON file
+def load_items():
+    with open(ITEMS_FILE, "r") as f:
+        items = json.load(f)
+        return items
+
+
+# Loads the elements from the JSON file: league_table
+with open(LEAGUE_TABLE_FILE, "r") as f:
+    league_table = json.load(f)
+
+# this def function is what makes the game, all the inputs and outputs, while loops and calculates the scores.
+# existing score allows to store a player's score, resume and continue the game.
+def play_game(player_name):
+    existing_score = league_table.get(player_name, 0)
+    items = load_items()
+    selected_items = random.sample(list(items.keys()), 6)
+    score = existing_score
+    for item_name in selected_items:
+        description = items[item_name]
+        print(f"I am {description}. What am I?")
+        tries = 3
+        while tries > 0:
+            guess = input("Your answer: ")
+            if guess.lower() == item_name.lower():
+                score += 1
+                print(f"Correct! Your score is: {score}")
+                break
+            else:
+                tries -= 1
+                print(f"Incorrect. You have {tries} tries left.")
+        if tries == 0:
+            print("Game over.")
+            print(f"Your final score is: {score}")
+            break
+
+    # this updates the league table with the player's score and names
+    league_table[player_name] = score
+    with open(LEAGUE_TABLE_FILE, "w") as f:
+        json.dump(league_table, f)
+
+
+sorted_league_table = sorted(league_table.items(), key=lambda x: x[1], reverse=True)
+# this sorts the scores in the table from the biggest to the lowest
+
+def display_league_table():
+    # this def displays the elements in the league table, sorted from the biggest score to the lowest
+    print("League Table:")
+    sorted_league_table = sorted(league_table.items(), key=lambda x: x[1], reverse=True)
+    # sorting elements from biggest to lowest
+    for player, score in sorted_league_table:
+        print(f"{player}: {score}")
+
+# main menu function, which gives 3 different choices for the player to choose from
+def main():
+    print("Welcome to: Guess the Name of the Item")
+    print("Please choose an option:")
+    print("1. League Table")
+    print("2. New Player")
+    print("3. Existing Player")
+    choice = int(input().strip())
+
+    if choice == 1:
+        display_league_table()
+        # first choice to display the league table with names and scores, in order from biggest to lowest
+    elif choice == 2:
+        # second choice is the new player function which stores the name and following score in the league table
+        player_name = input("What would you like to be called?\n").strip()
+        print(f"Hello {player_name}! Let's start the game!")
+        play_game(player_name)
+    elif choice == 3:
+        #third choice allows an existing player to resume the game with an existing stored score.
+        player_name = input("Enter your existing player name:\n").strip()
+        if player_name in league_table:
+            print(f"Hello {player_name}! Let's start the game with your existing score of {league_table[player_name]}")
+            play_game(player_name)
+        else:
+            print("Player not found.")
+
+
+if __name__ == "__main__":
+    main()
